@@ -1,6 +1,6 @@
 # Bluesky Structured Alert Feed (BSAF)
 
-**An open convention for structured alert and information bots on Bluesky, enabling client-side filtering and personalization.**
+An open convention for structured alert and information bots on Bluesky, enabling client-side filtering and personalization.
 
 ---
 
@@ -16,118 +16,131 @@ Current solutions force a choice:
 - **Regional bots** → Fragmented ecosystem, users must find and follow the right accounts
 - **Platform-specific features** → Lock-in, not portable across clients
 
+---
+
 ## The Solution
 
 **BSAF (Bluesky Structured Alert Feed)** is an open convention that separates concerns:
 
 | Layer | Responsibility | Who builds it |
 |:------|:---------------|:--------------|
-| **Bots** | Collect and post alerts with structured metadata | Bot developers (per country/source) |
-| **Convention** | Shared tag format for machine-readable filtering | This specification |
-| **Clients** | Filter and display posts based on user preferences | Client developers |
+| Bots | Collect and post alerts with structured metadata | Bot developers (per country/source) |
+| Convention | Shared tag format for machine-readable filtering | This specification |
+| Clients | Filter and display posts based on user preferences | Client developers |
 
-Bots post broadly. Clients filter locally. **Users see only what matters to them.**
+**Bots post broadly. Clients filter locally. Users see only what matters to them.**
 
 ```
-                    ┌─────────────────────────────┐
-                    │     Bluesky Network          │
-                    │                              │
-  ┌──────────┐     │   Posts with BSAF tags        │     ┌──────────────┐
-  │ 🇯🇵 JMA Bot │────▶│                              │◀────│ Any Bluesky  │
-  │ 🇺🇸 NWS Bot │────▶│   Searchable, filterable     │◀────│   Client     │
-  │ 🇪🇺 EU  Bot │────▶│   machine-readable metadata  │◀────│ (kazahana,   │
-  │ 🌍 Anyone  │────▶│                              │◀────│  etc.)       │
-  └──────────┘     └─────────────────────────────┘     └──────────────┘
-                                                              │
-                                                              ▼
-                                                      ┌──────────────┐
-                                                      │ User sees:   │
-                                                      │ Only relevant│
-                                                      │ alerts for   │
-                                                      │ their region │
-                                                      │ & preferences│
-                                                      └──────────────┘
+┌─────────────────────────────┐
+│     Bluesky Network         │
+│                             │
+┌──────────┐  │  Posts with BSAF tags    │  ┌──────────────┐
+│ 🇯🇵 JMA Bot │────▶│                         │◀────│ Any Bluesky  │
+│ 🇺🇸 NWS Bot │────▶│  Searchable, filterable  │◀────│ Client       │
+│ 🇪🇺 EU Bot  │────▶│  machine-readable        │◀────│ (kazahana,   │
+│ 🌍 Anyone  │────▶│  metadata                │◀────│  etc.)       │
+└──────────┘  └─────────────────────────────┘  └──────────────┘
+                              │
+                              ▼
+                    ┌──────────────┐
+                    │ User sees:   │
+                    │ Only relevant│
+                    │ alerts for   │
+                    │ their target │
+                    │ & preferences│
+                    └──────────────┘
 ```
+
+---
+
+## Design Philosophy
+
+BSAF is a **universal bot parsing system**, not limited to disaster alerts. The convention is designed to be fully domain-agnostic: disaster bots, sports score bots, news bots, traffic alert bots — anything that benefits from structured, filterable metadata can adopt BSAF.
+
+The core tags use intentionally generic names (`type`, `value`, `target`) rather than domain-specific terms, ensuring the protocol works across all content domains without modification.
+
+---
 
 ## How It Works
 
-### 1. Bots post with structured `tags`
+### 1. Bots post with structured tags
 
-AT Protocol's `app.bsky.feed.post` record supports a [`tags` field](https://docs.bsky.app/docs/advanced-guides/posts#tags) — an array of strings (max 8 tags, max 640 bytes total) that are **not displayed in the post UI** but are machine-readable.
+AT Protocol's `app.bsky.feed.post` record supports a `tags` field — an array of strings (max 8 tags, max 640 bytes total) that are not displayed in the post UI but are machine-readable.
 
 BSAF uses this field to embed structured metadata:
 
 ```json
 {
   "$type": "app.bsky.feed.post",
-  "text": "🔴 Earthquake: M5.2, Ibaraki Prefecture, Japan. Max intensity: Upper 5. Tsunami: None expected.",
+  "text": "🔴 Earthquake Info\nFeb 15, 11:52 — Ibaraki, Japan\nMagnitude: 5.2 (Depth: ~50km)\nMax intensity: Upper 5\nTsunami: None expected\n(Source: JMA)",
   "tags": [
     "bsaf:v1",
     "type:earthquake",
-    "severity:5+",
-    "country:JP",
-    "region:kanto",
-    "subregion:ibaraki"
+    "value:5+",
+    "time:2026-02-15T02:52:00Z",
+    "target:jp-kanto",
+    "source:jma"
   ],
+  "langs": ["en"],
   "createdAt": "2026-02-15T02:55:54Z"
 }
 ```
 
 The post text remains human-readable. The tags enable machine filtering.
 
-### 2. Clients filter based on user preferences
+### 2. Users register bots via Bot Definition JSON
 
-A BSAF-compatible client reads the `tags` field and applies user-defined rules:
+Bot developers publish a **Bot Definition JSON** file that describes their bot and its available filter options. Users import this JSON into a BSAF-compatible client to register the bot.
 
 ```
-User's filter configuration:
-  - country = JP
-  - region = hokkaido
-  - Show earthquakes: severity >= 3
-  - Always show: tsunami, eruption, severity >= 5
+Bot Developer                 User                        BSAF Client
+    │                          │                            │
+    │  Publish JSON file       │                            │
+    │  (via Bluesky/GitHub)    │                            │
+    │                          │                            │
+    │                          │  Import JSON               │
+    │                          │─────────────────────────▶  │
+    │                          │                            │
+    │                          │                     Parse JSON
+    │                          │                     Auto-follow bot account
+    │                          │                     Generate filter settings UI
+    │                          │                            │
+    │                          │  ◀──── Filter settings displayed
+    │                          │  Select preferences        │
+    │                          │                            │
+    │  Post with BSAF tags ──────────────────────────────▶  │
+    │                          │                     Apply tag-based filtering
+    │                          │  ◀──── Show matching posts only
+```
+
+### 3. Clients filter based on user preferences
+
+A BSAF-compatible client reads the `tags` field and applies user-defined filter rules configured per bot:
+
+```
+Example: User's filter configuration for JMA Bot
+- type: earthquake ✅, tsunami ✅, eruption ✅, ashfall ❌
+- value: 震度3 ✅, 震度4 ✅, 震度5弱 ✅, ... (enabled)
+         震度1 ❌, 震度2 ❌ (disabled)
+- target: jp-kanto ✅, jp-hokkaido ✅ (enabled)
+        jp-kinki ❌, jp-kyushu ❌ (disabled)
 
 Incoming post tags:
-  type:earthquake, severity:2, country:JP, region:kanto
+  type:earthquake, value:2, target:jp-kanto
+  Result: HIDDEN (value "2" is not in user's enabled values)
 
-Result: HIDDEN (region mismatch, severity below threshold)
-```
-
-```
 Incoming post tags:
-  type:earthquake, severity:5+, country:JP, region:kanto
-
-Result: SHOWN (severity >= 5 overrides region filter)
+  type:earthquake, value:5+, target:jp-kanto
+  Result: SHOWN (type, value, and target all match user's enabled filters)
 ```
 
-### 3. Users configure via presets or custom rules
+### 4. Clients handle duplicate posts from multiple bots
 
-For ease of use, clients can offer presets (pre-built filter configurations):
+When a user subscribes to multiple BSAF bots that cover the same data source, duplicate posts may occur. Clients SHOULD detect and collapse duplicates:
 
-```json
-{
-  "preset_name": "Japan Disaster Alerts (Hokkaido)",
-  "version": "1.0",
-  "accounts": [
-    "did:plc:xxxxx"
-  ],
-  "filters": {
-    "country": ["JP"],
-    "region": ["hokkaido"]
-  },
-  "type_settings": {
-    "earthquake": { "min_severity": "3" },
-    "tsunami": { "always_show": true },
-    "weather-warning": { "min_severity": "warning" },
-    "eruption": { "always_show": true },
-    "special-warning": { "always_show": true }
-  },
-  "global_overrides": [
-    { "field": "severity", "operator": "in", "value": ["critical", "5+", "6+", "6-", "7"], "action": "always_show" }
-  ]
-}
-```
+**Duplicate detection:** Posts are considered duplicates when `type` + `value` + `time` + `target` match across different bot accounts.
 
-Presets are shareable JSON files that users can import/export, and communities can publish for their country or region.
+**Display behavior:** The first received post is displayed. Subsequent duplicates are collapsed with an indicator (e.g., "Also reported by N other bots"). This preserves redundancy (if one bot goes down, another still delivers) while keeping the timeline clean.
 
 ---
 
@@ -143,55 +156,243 @@ Every BSAF-compatible post **MUST** include:
 
 ### Core Tags
 
-| Prefix | Required | Description | Example Values |
-|:-------|:---------|:------------|:---------------|
-| `type:` | **Yes** | Alert category | `earthquake`, `tsunami`, `weather-warning`, `weather-watch`, `eruption`, `tornado`, `hurricane`, `flood`, `wildfire`, `special-warning` |
-| `severity:` | **Yes** | Severity level | See Severity Scale below |
-| `country:` | **Yes** | ISO 3166-1 alpha-2 | `JP`, `US`, `DE`, `FR`, `TW` |
-| `region:` | Recommended | Sub-national region | `kanto`, `midwest`, `bavaria` |
-| `subregion:` | Optional | Specific area | `ibaraki`, `oklahoma`, `munich` |
-
-### Severity Scale
-
-Severity values are **intentionally flexible** to accommodate different national systems. However, BSAF defines a recommended mapping:
-
-| BSAF Level | Meaning | Japan (JMA) | US (NWS) | EU (MeteoAlarm) |
-|:-----------|:--------|:------------|:---------|:-----------------|
-| `info` | Informational | — | Advisory | Green |
-| `minor` | Minor | 震度1-2 / 注意報 | Watch | Yellow |
-| `moderate` | Moderate | 震度3-4 / 警報 | Warning | Orange |
-| `severe` | Severe | 震度5弱-5強 | Severe | Red |
-| `critical` | Critical / Life-threatening | 震度6弱+ / 特別警報 / 大津波警報 | Extreme | Purple / Dark Red |
-
-For **earthquake-specific** severity, numeric Shindo / Modified Mercalli values are also valid:
-
-```
-severity:3        → JMA Shindo 3
-severity:5+       → JMA Shindo 5-upper (5強)
-severity:5-       → JMA Shindo 5-lower (5弱)
-severity:mmi-VII  → Modified Mercalli VII
-```
-
-### Optional Tags
+All core tags are **required** for every BSAF post.
 
 | Prefix | Description | Example Values |
 |:-------|:------------|:---------------|
-| `source:` | Originating authority | `jma`, `nws`, `dwd`, `meteoalarm`, `bom` |
-| `scope:` | Geographic scope | `local`, `regional`, `national` |
-| `expires:` | Expiration (ISO 8601) | `2026-02-15T12:00:00Z` |
+| `type:` | Information category | `earthquake`, `tsunami`, `baseball`, `soccer` |
+| `value:` | Scale / magnitude / weight | `震度5強`, `warning`, `final`, `highlight` |
+| `time:` | Event timestamp (ISO 8601 UTC) | `2026-02-15T02:52:00Z` |
+| `target:` | Target subject / audience | `jp-kanto`, `us-california`, `npb-giants` |
+| `source:` | Originating authority / data source | `jma`, `nws`, `espn` |
 
 ### Tag Budget
 
-AT Protocol allows max **8 tags** and **640 bytes total**. Prioritize in this order:
+AT Protocol allows max 8 tags and 640 bytes total.
 
-1. `bsaf:v1` (required)
-2. `type:` (required)
-3. `severity:` (required)
-4. `country:` (required)
-5. `region:` (recommended)
-6. `subregion:` (if space allows)
-7. `source:` (if space allows)
-8. Additional context (if space allows)
+| Slot | Tag | Required |
+|:-----|:----|:---------|
+| 1 | `bsaf:v1` | ✅ Required |
+| 2 | `type:{category}` | ✅ Required |
+| 3 | `value:{scale}` | ✅ Required |
+| 4 | `time:{ISO8601}` | ✅ Required |
+| 5 | `target:{target}` | ✅ Required |
+| 6 | `source:{authority}` | ✅ Required |
+| 7 | *(reserved)* | Optional |
+| 8 | *(reserved)* | Optional |
+
+6 required tags + 2 reserved slots for future extensions.
+
+### Tag Value Guidelines
+
+#### `type:` values
+
+Bot developers define `type` values appropriate for their domain. Examples:
+
+| Domain | type values |
+|:-------|:------------|
+| Disaster (Japan) | `earthquake`, `tsunami`, `eruption`, `ashfall`, `weather-warning`, `special-warning`, `landslide-warning`, `tornado-warning`, `heavy-rain`, `nankai-trough` |
+| Disaster (US) | `earthquake`, `tsunami`, `tornado`, `hurricane`, `flood`, `wildfire`, `winter-storm` |
+| Sports | `baseball`, `soccer`, `basketball`, `hockey` |
+| News | `breaking`, `politics`, `business`, `technology` |
+
+#### `value:` values
+
+`value` represents the **weight or magnitude** of the information. Bot developers define discrete values appropriate for their domain. These are used as filter options in the client UI.
+
+| Domain | value examples |
+|:-------|:---------------|
+| Japan earthquakes | `震度1`, `震度2`, `震度3`, `震度4`, `震度5弱`, `震度5強`, `震度6弱`, `震度6強`, `震度7` |
+| Japan weather | `info`, `advisory`, `warning`, `severe-warning`, `special-warning` |
+| US weather (NWS) | `advisory`, `watch`, `warning`, `extreme` |
+| Sports | `pre-game`, `in-progress`, `final`, `highlight`, `breaking` |
+
+#### `time:` values
+
+ISO 8601 format in UTC. This **MUST** be the timestamp from the **original source event**, not the bot's posting time.
+
+```
+time:2026-02-15T02:52:00Z
+```
+
+#### `target:` values
+
+Target values **MUST** follow the strict naming convention defined by each bot in its Bot Definition JSON. Target values are prefixed with a lowercase country code (ISO 3166-1 alpha-2) for geographic areas, or a domain-specific prefix for non-geographic subjects.
+
+| Domain | target examples |
+|:-------|:-------------|
+| Japan (by region) | `jp-hokkaido`, `jp-tohoku`, `jp-kanto`, `jp-hokuriku`, `jp-chubu`, `jp-kinki`, `jp-chugoku`, `jp-shikoku`, `jp-kyushu`, `jp-okinawa` |
+| US (by state) | `us-california`, `us-texas`, `us-new-york` |
+| EU (by country) | `eu-germany`, `eu-france`, `eu-spain` |
+| Sports (by team) | `npb-giants`, `npb-tigers`, `epl-arsenal`, `nfl-chiefs` |
+
+**Critical:** Target values MUST be strictly normalized. Inconsistent target values across bots render the protocol useless for filtering. Bot developers MUST define the exact set of target values in their Bot Definition JSON, and clients use these definitions to build filter UIs.
+
+### Same-Source Interoperability Requirement
+
+When developing a new BSAF bot that covers the **same data source** as an existing BSAF bot, the new bot **MUST** respect the `value` and `target` values published in the existing bot's Bot Definition JSON and use identical values. This requirement exists to ensure that client-side duplicate detection functions correctly across multiple bots.
+
+For example, if an existing JMA earthquake bot uses `value:震度5強` and `target:jp-kanto`, any new bot that also processes JMA earthquake data MUST use the same `value:震度5強` and `target:jp-kanto` — not alternatives such as `value:5+`, `value:shindo-5-upper`, `target:jp-kantou`, or `target:jp-関東`.
+
+If a new bot uses different values for the same source events, clients will be unable to detect duplicates, resulting in redundant posts appearing in user timelines and undermining the core benefit of the BSAF protocol.
+
+#### `source:` values
+
+Identifier for the originating authority or data source.
+
+| source value | Authority |
+|:-------------|:----------|
+| `jma` | Japan Meteorological Agency (気象庁) |
+| `nws` | National Weather Service (US) |
+| `meteoalarm` | MeteoAlarm (EU) |
+| `bom` | Bureau of Meteorology (Australia) |
+| `espn` | ESPN |
+| `ap` | Associated Press |
+
+---
+
+## Bot Definition JSON
+
+### Overview
+
+Every BSAF bot **MUST** publish a Bot Definition JSON file. This file serves as the single source of truth for:
+
+- Bot identity and data source information
+- Available filter options for client UI generation
+- Self-update URL for version management
+
+Users import this JSON into their BSAF-compatible client to register the bot. The client parses the JSON, auto-follows the bot account, and dynamically generates a filter settings UI.
+
+### Schema
+
+```json
+{
+  "bsaf_schema": "1.0",
+  "updated_at": "2026-02-24T00:00:00Z",
+  "self_url": "https://example.com/bsaf-jma-bot.json",
+
+  "bot": {
+    "handle": "jma-alert.bsky.social",
+    "did": "did:plc:xxxxx",
+    "name": "Japan Disaster Alerts (Unofficial)",
+    "description": "Disaster alerts based on JMA public data",
+    "source": "Japan Meteorological Agency — Disaster Prevention XML",
+    "source_url": "https://www.data.jma.go.jp/developer/xml/feed/"
+  },
+
+  "filters": [
+    {
+      "tag": "type",
+      "label": "Alert Type",
+      "options": [
+        { "value": "earthquake", "label": "Earthquake" },
+        { "value": "tsunami", "label": "Tsunami" },
+        { "value": "eruption", "label": "Eruption" },
+        { "value": "ashfall", "label": "Ashfall" },
+        { "value": "weather-warning", "label": "Weather Warning" },
+        { "value": "special-warning", "label": "Special Warning" },
+        { "value": "landslide-warning", "label": "Landslide Warning" },
+        { "value": "tornado-warning", "label": "Tornado Warning" },
+        { "value": "heavy-rain", "label": "Record Heavy Rain" },
+        { "value": "nankai-trough", "label": "Nankai Trough Alert" }
+      ]
+    },
+    {
+      "tag": "value",
+      "label": "Weight",
+      "options": [
+        { "value": "震度1", "label": "Seismic 1" },
+        { "value": "震度2", "label": "Seismic 2" },
+        { "value": "震度3", "label": "Seismic 3" },
+        { "value": "震度4", "label": "Seismic 4" },
+        { "value": "震度5弱", "label": "Seismic 5 Lower" },
+        { "value": "震度5強", "label": "Seismic 5 Upper" },
+        { "value": "震度6弱", "label": "Seismic 6 Lower" },
+        { "value": "震度6強", "label": "Seismic 6 Upper" },
+        { "value": "震度7", "label": "Seismic 7" },
+        { "value": "info", "label": "Info" },
+        { "value": "advisory", "label": "Advisory" },
+        { "value": "warning", "label": "Warning" },
+        { "value": "severe-warning", "label": "Severe Warning" },
+        { "value": "special-warning", "label": "Special Warning" }
+      ]
+    },
+    {
+      "tag": "target",
+      "label": "Region",
+      "options": [
+        { "value": "jp-hokkaido", "label": "Hokkaido" },
+        { "value": "jp-tohoku", "label": "Tohoku" },
+        { "value": "jp-kanto", "label": "Kanto" },
+        { "value": "jp-hokuriku", "label": "Hokuriku" },
+        { "value": "jp-chubu", "label": "Chubu" },
+        { "value": "jp-kinki", "label": "Kinki" },
+        { "value": "jp-chugoku", "label": "Chugoku" },
+        { "value": "jp-shikoku", "label": "Shikoku" },
+        { "value": "jp-kyushu", "label": "Kyushu" },
+        { "value": "jp-okinawa", "label": "Okinawa" }
+      ]
+    }
+  ]
+}
+```
+
+### Field Definitions
+
+| Field | Required | Description |
+|:------|:---------|:------------|
+| `bsaf_schema` | ✅ | Schema version (currently `"1.0"`) |
+| `updated_at` | ✅ | Last update timestamp (ISO 8601) |
+| `self_url` | ✅ | URL where this JSON is hosted; clients periodically fetch to check for updates |
+| `bot.handle` | ✅ | Bluesky handle of the bot account |
+| `bot.did` | ✅ | DID of the bot account |
+| `bot.name` | ✅ | Human-readable bot name |
+| `bot.description` | ✅ | Brief description of what the bot provides |
+| `bot.source` | ✅ | Name of the primary data source |
+| `bot.source_url` | Recommended | URL of the primary data source |
+| `filters` | ✅ | Array of filter definitions for client UI generation |
+| `filters[].tag` | ✅ | Which BSAF tag this filter applies to (`type`, `value`, or `target`) |
+| `filters[].label` | ✅ | Display label for the filter group |
+| `filters[].options` | ✅ | Array of selectable options |
+| `filters[].options[].value` | ✅ | Tag value (must match actual tag values used in posts) |
+| `filters[].options[].label` | ✅ | Human-readable label for this option |
+
+### Update Mechanism
+
+Clients **SHOULD** periodically fetch the `self_url` and compare `updated_at` with the stored version. If a newer version is found, the client updates the filter UI and notifies the user of any new options.
+
+Recommended check interval: once per day.
+
+---
+
+## Post Format Requirements
+
+### Source Attribution (Required)
+
+Every BSAF post **MUST** include the primary data source name in the post text body. This ensures source attribution is visible to all users, including those using non-BSAF clients.
+
+Format: `(Source: {source name})` at the end of the post text.
+
+```
+🔴 Earthquake Info
+Feb 15, 11:52 — Ibaraki, Japan
+Magnitude: 5.2 (Depth: ~50km)
+Max intensity: Upper 5
+Tsunami: None expected
+(Source: JMA)
+```
+
+This is a **dual guarantee**: the `source:` tag provides machine-readable attribution, while the post text provides human-readable attribution.
+
+### Language
+
+Posts **MUST** set the `langs` field in the AT Protocol record to indicate the language of the post text.
+
+```json
+{
+  "langs": ["ja"]
+}
+```
 
 ---
 
@@ -199,49 +400,61 @@ AT Protocol allows max **8 tags** and **640 bytes total**. Prioritize in this or
 
 ### Building a BSAF-Compatible Bot
 
-A BSAF bot has three jobs:
+A BSAF bot has four jobs:
 
-1. **Collect** — Monitor an official data source (e.g., JMA XML feeds, NWS CAP alerts, MeteoAlarm API)
-2. **Format** — Create a human-readable post text + BSAF tags
+1. **Collect** — Monitor an official data source (e.g., JMA XML feeds, NWS CAP alerts)
+2. **Format** — Create a human-readable post text with source attribution + BSAF tags
 3. **Post** — Publish to Bluesky via AT Protocol API
+4. **Publish** — Maintain a Bot Definition JSON file for client registration
 
-#### Minimal Example (TypeScript)
+### Minimal Example (TypeScript)
 
 ```typescript
 import { BskyAgent, RichText } from "@atproto/api";
 
 const agent = new BskyAgent({ service: "https://bsky.social" });
-await agent.login({ identifier: "your-bot.bsky.social", password: "app-password" });
+await agent.login({
+  identifier: "your-bot.bsky.social",
+  password: "app-password",
+});
 
-// Format the post
-const text = "🔴 Earthquake: M5.2, Ibaraki, Japan\nMax intensity: Upper 5\nTsunami: None expected";
+// Format the post (source attribution required in text)
+const text =
+  "🔴 Earthquake Info\n" +
+  "Feb 15, 11:52 — Ibaraki, Japan\n" +
+  "Magnitude: 5.2 (Depth: ~50km)\n" +
+  "Max intensity: Upper 5\n" +
+  "Tsunami: None expected\n" +
+  "(Source: JMA)";
+
 const rt = new RichText({ text });
 await rt.detectFacets(agent);
 
-// Post with BSAF tags
+// Post with BSAF tags (all 6 core tags required)
 await agent.post({
   text: rt.text,
   facets: rt.facets,
   tags: [
     "bsaf:v1",
     "type:earthquake",
-    "severity:5+",
-    "country:JP",
-    "region:kanto",
-    "subregion:ibaraki",
+    "value:5+",
+    "time:2026-02-15T02:52:00Z",
+    "target:jp-kanto",
     "source:jma",
   ],
+  langs: ["ja"],
 });
 ```
 
-#### Guidelines for Bot Operators
+### Guidelines for Bot Operators
 
-- **Profile**: Clearly identify as a bot (use "Bot" label in Bluesky profile settings)
-- **Bio**: State the data source and coverage area (e.g., "Japan earthquake & tsunami alerts from JMA")
-- **Posting frequency**: Keep reasonable intervals (10+ seconds between posts)
-- **Deduplication**: Track posted alert IDs to avoid duplicate posts
-- **Attribution**: Always credit the original data source
-- **Language**: Post in the primary language of the data source; consider multilingual posts for critical alerts
+- **Profile:** Clearly identify as a bot (use "Bot" label in Bluesky profile settings)
+- **Bio:** State the data source and coverage area
+- **Posting frequency:** Keep reasonable intervals (10+ seconds between posts)
+- **Deduplication:** Track posted alert IDs to avoid duplicate posts
+- **Source attribution:** Always include the data source name in both tags AND post text
+- **Language:** Set the `langs` field; post in the primary language of the data source
+- **Bot Definition JSON:** Publish and maintain a JSON file at a stable URL
 
 ### Available Data Sources by Country
 
@@ -249,122 +462,115 @@ We welcome contributions! If you know of a public alert data source, please open
 
 | Country | Source | Format | Access | Notes |
 |:--------|:-------|:-------|:-------|:------|
-| 🇯🇵 Japan | [JMA XML Feed](https://xml.kishou.go.jp/xmlpull.html) | Atom/XML | Free, no registration | Updated every minute |
-| 🇺🇸 USA | [NWS CAP Alerts](https://alerts.weather.gov/) | CAP/Atom | Free, no registration | Real-time |
-| 🇪🇺 EU | [MeteoAlarm](https://www.meteoalarm.org/) | CAP/RSS | Free | 30+ European countries |
-| 🇦🇺 Australia | [BOM Warnings](http://www.bom.gov.au/catalogue/warnings/) | RSS/XML | Free | |
-| 🇹🇼 Taiwan | [CWA Open Data](https://opendata.cwa.gov.tw/) | JSON/XML | Free, registration required | |
-| 🇰🇷 Korea | [KMA Data Portal](https://data.kma.go.kr/) | JSON/XML | Free, registration required | |
-| 🇨🇦 Canada | [ECCC Alerts](https://weather.gc.ca/warnings/) | CAP/Atom | Free | |
-| 🇳🇿 New Zealand | [MetService Warnings](https://www.metservice.com/) | RSS | Free | |
-| 🌍 Global | [GDACS](https://www.gdacs.org/) | RSS/CAP | Free | Major disasters only |
+| 🇯🇵 Japan | JMA XML Feed | Atom/XML | Free, no registration | Updated every minute |
+| 🇺🇸 USA | NWS CAP Alerts | CAP/Atom | Free, no registration | Real-time |
+| 🇪🇺 EU | MeteoAlarm | CAP/RSS | Free | 30+ European countries |
+| 🇦🇺 Australia | BOM Warnings | RSS/XML | Free | |
+| 🇹🇼 Taiwan | CWA Open Data | JSON/XML | Free, registration required | |
+| 🇰🇷 Korea | KMA Data Portal | JSON/XML | Free, registration required | |
+| 🇨🇦 Canada | ECCC Alerts | CAP/Atom | Free | |
+| 🇳🇿 New Zealand | MetService Warnings | RSS | Free | |
+| 🌍 Global | GDACS | RSS/CAP | Free | Major disasters only |
 
 ---
 
 ## For Client Developers
 
-### Implementing BSAF Filtering
+### Implementing BSAF Support
 
 Any Bluesky client can support BSAF. Here's the basic flow:
 
+#### 1. Bot Registration
+
+User imports a Bot Definition JSON file. The client:
+- Parses the JSON and validates the schema
+- Auto-follows the bot's Bluesky account (`bot.handle`)
+- Generates a filter settings UI from `filters` definitions
+- Stores the `self_url` for periodic update checks
+
+#### 2. Filter Settings UI
+
+The client dynamically generates a settings screen for each registered bot based on the `filters` array. Every filter is rendered as a **multi-select option group**:
+
 ```
-1. User configures BSAF feed tab:
-   - Specifies bot account(s) to monitor
-   - Sets filter rules (country, region, severity thresholds)
-   - Or imports a community preset
-
-2. Client fetches posts from specified account(s):
-   - Via Bluesky List feed (recommended)
-   - Via direct author feed API
-   - Via following timeline (simplest)
-
-3. For each post, client checks for "bsaf:v1" tag:
-   - If absent → display normally (not a BSAF post)
-   - If present → apply filter rules against tags
-
-4. Display matching posts in dedicated tab/view
+┌─ Japan Disaster Alerts (Unofficial) ────────────────┐
+│                                                      │
+│ 📌 Alert Type (type)                                │
+│ [✅ Earthquake] [✅ Tsunami] [✅ Eruption] [□ Ashfall]│
+│ [✅ Special Warning] [□ Weather Warning]             │
+│                                                      │
+│ 📌 Weight (value)                                   │
+│ [□ Seismic 1] [□ Seismic 2] [✅ Seismic 3] ...     │
+│ [□ Info] [□ Advisory] [✅ Warning] ...              │
+│                                                      │
+│ 📌 Region (target)                                    │
+│ [✅ Hokkaido] [□ Tohoku] [✅ Kanto] [□ Hokuriku]    │
+│                                                      │
+└──────────────────────────────────────────────────────┘
 ```
 
-#### Filtering Logic (Pseudocode)
+All filters use the same input type (multi-select), keeping client implementation simple and consistent.
 
-```python
-def should_display(post, user_config):
-    tags = parse_bsaf_tags(post.tags)
-    
-    # Not a BSAF post — show normally
+#### 3. Filtering Logic
+
+For each incoming post from a registered bot:
+
+```
+def should_display(post, bot_config):
+    # Not a BSAF post — display normally
     if "bsaf:v1" not in post.tags:
         return True
-    
-    # Check global overrides first (always show critical alerts)
-    for override in user_config.global_overrides:
-        if matches(tags, override):
-            return True
-    
-    # Check country filter
-    if tags.country not in user_config.countries:
-        return False
-    
-    # Check region filter (if configured)
-    if user_config.regions and tags.region not in user_config.regions:
-        # Still show if severity exceeds regional override threshold
-        if not exceeds_threshold(tags.severity, user_config.regional_override):
+
+    tags = parse_bsaf_tags(post.tags)
+
+    # Check each filter: post's tag value must be in user's enabled options
+    for filter in bot_config.filters:
+        tag_value = tags.get(filter.tag)
+        if tag_value and tag_value not in filter.enabled_options:
             return False
-    
-    # Check type-specific settings
-    type_config = user_config.type_settings.get(tags.type)
-    if type_config:
-        if type_config.always_show:
-            return True
-        if not meets_severity(tags.severity, type_config.min_severity):
-            return False
-    
+
     return True
 ```
 
-### Preset Distribution
+#### 4. Duplicate Detection and Collapsing
 
-Presets are JSON files that bundle filter configurations for easy sharing.
-
-**Recommended distribution channels:**
-
-- GitHub repository (this repo's `/presets` directory)
-- Direct URL import in client settings
-- QR code / share link from another user
-
-Preset files should follow the naming convention:
+When multiple registered bots post about the same event:
 
 ```
-presets/
-  jp-disaster-all.json
-  jp-disaster-hokkaido.json
-  jp-disaster-kanto.json
-  us-weather-national.json
-  us-weather-california.json
-  eu-meteoalarm-germany.json
-  ...
+def is_duplicate(post_a, post_b):
+    tags_a = parse_bsaf_tags(post_a.tags)
+    tags_b = parse_bsaf_tags(post_b.tags)
+
+    return (
+        tags_a.type == tags_b.type and
+        tags_a.value == tags_b.value and
+        tags_a.time == tags_b.time and
+        tags_a.target == tags_b.target and
+        post_a.author != post_b.author  # Different bots
+    )
 ```
 
----
+**Display behavior:**
+- Show the first received post
+- Collapse duplicates with indicator: "Also reported by N other bot(s)"
+- Users can expand to see all versions
 
-## Roadmap
+This preserves **redundancy as a feature** — if one bot goes offline, users still receive alerts from other bots covering the same source.
 
-### Phase 1: Foundation (Current)
-- [x] Publish BSAF specification v1
-- [ ] Launch reference bot: Japan earthquake & tsunami alerts
-- [ ] Implement BSAF filtering in [kazahana](https://github.com/osprey74/kazahana) as reference client
-- [ ] Publish Japan preset files
+#### 5. JSON Update Check
 
-### Phase 2: Ecosystem Growth
-- [ ] Community-contributed bots for US (NWS), EU (MeteoAlarm), and others
-- [ ] Preset sharing platform / directory
-- [ ] BSAF tag validation tool for bot developers
-- [ ] Adoption by additional Bluesky clients
+Clients periodically fetch each bot's `self_url` and compare `updated_at`:
 
-### Phase 3: Evolution
-- [ ] BSAF v2 specification (based on community feedback)
-- [ ] Support for media attachments (alert maps, radar images)
-- [ ] Rich embed cards with structured alert data
-- [ ] Integration with AT Protocol's labeling system
+```
+def check_for_updates(bot_registration):
+    response = fetch(bot_registration.self_url)
+    remote_json = parse(response)
+
+    if remote_json.updated_at > bot_registration.updated_at:
+        # Update stored JSON
+        # Refresh filter UI with new/removed options
+        # Notify user of changes
+```
 
 ---
 
@@ -380,15 +586,44 @@ Hashtags clutter the post text and are prone to typos and inconsistencies. The `
 
 ### Can I use BSAF for non-disaster content?
 
-Absolutely. The convention is designed to be content-agnostic. News bots, sports score bots, traffic alert bots — anything that benefits from structured, filterable metadata can adopt BSAF. Simply define appropriate `type:` values for your domain.
+Absolutely. BSAF is a **universal bot parsing system** designed to be fully domain-agnostic. News bots, sports score bots, traffic alert bots — anything that benefits from structured, filterable metadata can adopt BSAF. Simply define appropriate `type:` and `value:` options for your domain in your Bot Definition JSON.
 
 ### What if I need more than 8 tags?
 
-Prioritize the core tags (`bsaf:v1`, `type`, `severity`, `country`, `region`). If you consistently need more metadata, consider encoding compound values (e.g., `geo:JP-kanto-ibaraki` as a single tag) or proposing an extension for BSAF v2.
+The current specification uses 6 of 8 available slots, with 2 reserved for future extensions. If you need additional metadata, propose an extension for BSAF v2.
+
+### How does duplicate detection work across bots?
+
+Clients detect duplicates by comparing `type` + `value` + `time` + `target` across posts from different bot accounts. The `time` tag uses the **original source event timestamp** (not the bot's posting time), ensuring identical events produce identical `time` values regardless of which bot processes them.
 
 ### How is this different from CAP (Common Alerting Protocol)?
 
-[CAP](https://en.wikipedia.org/wiki/Common_Alerting_Protocol) is a comprehensive XML standard for emergency alerts used by national agencies. BSAF is a lightweight convention for social media posts on Bluesky. A typical BSAF bot **consumes** CAP data from national sources and **produces** Bluesky posts with BSAF tags. They're complementary, not competing.
+CAP is a comprehensive XML standard for emergency alerts used by national agencies. BSAF is a lightweight convention for social media posts on Bluesky. A typical BSAF bot *consumes* CAP data from national sources and *produces* Bluesky posts with BSAF tags. They're complementary, not competing.
+
+---
+
+## Roadmap
+
+### Phase 1: Foundation (Current)
+
+- [ ] Publish BSAF specification v1
+- [ ] Launch reference bot: Japan earthquake & tsunami alerts
+- [ ] Implement BSAF filtering in kazahana as reference client
+- [ ] Publish Bot Definition JSON for reference bot
+
+### Phase 2: Ecosystem Growth
+
+- [ ] Community-contributed bots for US (NWS), EU (MeteoAlarm), and others
+- [ ] Bot Definition JSON directory / registry
+- [ ] BSAF tag validation tool for bot developers
+- [ ] Adoption by additional Bluesky clients
+
+### Phase 3: Evolution
+
+- [ ] BSAF v2 specification (based on community feedback)
+- [ ] Support for media attachments (alert maps, radar images)
+- [ ] Rich embed cards with structured alert data
+- [ ] Integration with AT Protocol's labeling system
 
 ---
 
@@ -396,20 +631,20 @@ Prioritize the core tags (`bsaf:v1`, `type`, `severity`, `country`, `region`). I
 
 We welcome contributions of all kinds:
 
-- 🤖 **Build a bot** for your country's disaster alerts
-- 📋 **Create presets** for your region
+- 🤖 **Build a bot** for your country's disaster alerts or any information domain
+- 📋 **Publish a Bot Definition JSON** for your bot
 - 🐛 **Report issues** with the specification
 - 📝 **Improve documentation** and translations
 - 💡 **Propose features** for BSAF v2
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ---
 
 ## Reference Implementation
 
-- **Bot**: [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — Japan earthquake/tsunami/weather alerts (coming soon)
-- **Client**: [kazahana](https://github.com/osprey74/kazahana) — Bluesky desktop client with BSAF support (coming soon)
+- **Bot:** [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — Japan earthquake/tsunami/weather alerts *(coming soon)*
+- **Client:** [kazahana](https://github.com/osprey74/kazahana) — Bluesky desktop client with BSAF support *(coming soon)*
 
 ---
 
@@ -417,14 +652,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 This specification is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). You are free to adopt, modify, and redistribute it with attribution.
 
-Reference implementations are licensed under [MIT License](LICENSE).
+Reference implementations are licensed under [MIT License](../LICENSE).
 
 ---
 
-<p align="center">
-  <strong>BSAF is an open community effort.</strong><br>
-  Built for safety. Designed for everyone.<br><br>
-  <a href="https://github.com/osprey74/bsaf/issues">Feedback</a> ·
-  <a href="https://github.com/osprey74/bsaf/discussions">Discussions</a> ·
-  <a href="CONTRIBUTING.md">Contribute</a>
-</p>
+**BSAF is an open community effort. Built for safety. Designed for everyone.**
+
+[Feedback](https://github.com/osprey74/bsaf-protocol/issues) · [Discussions](https://github.com/osprey74/bsaf-protocol/discussions) · [Contribute](../CONTRIBUTING.md)

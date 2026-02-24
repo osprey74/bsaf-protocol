@@ -76,7 +76,7 @@ BSAF uses this field to embed structured metadata:
   "tags": [
     "bsaf:v1",
     "type:earthquake",
-    "value:5+",
+    "value:震度5強",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma"
@@ -126,11 +126,11 @@ Example: User's filter configuration for JMA Bot
         jp-kinki ❌, jp-kyushu ❌ (disabled)
 
 Incoming post tags:
-  type:earthquake, value:2, target:jp-kanto
-  Result: HIDDEN (value "2" is not in user's enabled values)
+  type:earthquake, value:震度2, target:jp-kanto
+  Result: HIDDEN (value "震度2" is not in user's enabled values)
 
 Incoming post tags:
-  type:earthquake, value:5+, target:jp-kanto
+  type:earthquake, value:震度5強, target:jp-kanto
   Result: SHOWN (type, value, and target all match user's enabled filters)
 ```
 
@@ -437,7 +437,7 @@ await agent.post({
   tags: [
     "bsaf:v1",
     "type:earthquake",
-    "value:5+",
+    "value:震度5強",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma",

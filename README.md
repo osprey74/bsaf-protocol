@@ -171,8 +171,6 @@ Any Bluesky client can support BSAF:
 
 ## Roadmap
 
-See **[ROADMAP.md](ROADMAP.md)** for detailed milestones, demo plan, and timeline.
-
 ### Phase 1: Foundation (Current)
 
 - [x] Publish BSAF specification v1

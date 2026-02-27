@@ -76,7 +76,7 @@ BSAF uses this field to embed structured metadata:
   "tags": [
     "bsaf:v1",
     "type:earthquake",
-    "value:震度5強",
+    "value:5+",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma"
@@ -126,11 +126,11 @@ Example: User's filter configuration for JMA Bot
         jp-kinki ❌, jp-kyushu ❌ (disabled)
 
 Incoming post tags:
-  type:earthquake, value:震度2, target:jp-kanto
-  Result: HIDDEN (value "震度2" is not in user's enabled values)
+  type:earthquake, value:2, target:jp-kanto
+  Result: HIDDEN (value "2" is not in user's enabled values)
 
 Incoming post tags:
-  type:earthquake, value:震度5強, target:jp-kanto
+  type:earthquake, value:5+, target:jp-kanto
   Result: SHOWN (type, value, and target all match user's enabled filters)
 ```
 
@@ -161,7 +161,7 @@ All core tags are **required** for every BSAF post.
 | Prefix | Description | Example Values |
 |:-------|:------------|:---------------|
 | `type:` | Information category | `earthquake`, `tsunami`, `baseball`, `soccer` |
-| `value:` | Scale / magnitude / weight | `震度5強`, `warning`, `final`, `highlight` |
+| `value:` | Scale / magnitude / weight | `5+`, `warning`, `final`, `highlight` |
 | `time:` | Event timestamp (ISO 8601 UTC) | `2026-02-15T02:52:00Z` |
 | `target:` | Target subject / audience | `jp-kanto`, `us-california`, `npb-giants` |
 | `source:` | Originating authority / data source | `jma`, `nws`, `espn` |
@@ -202,7 +202,7 @@ Bot developers define `type` values appropriate for their domain. Examples:
 
 | Domain | value examples |
 |:-------|:---------------|
-| Japan earthquakes | `震度1`, `震度2`, `震度3`, `震度4`, `震度5弱`, `震度5強`, `震度6弱`, `震度6強`, `震度7` |
+| Japan earthquakes | `1`, `2`, `3`, `4`, `5-`, `5+`, `6-`, `6+`, `7` |
 | Japan weather | `info`, `advisory`, `warning`, `severe-warning`, `special-warning` |
 | US weather (NWS) | `advisory`, `watch`, `warning`, `extreme` |
 | Sports | `pre-game`, `in-progress`, `final`, `highlight`, `breaking` |
@@ -232,7 +232,7 @@ Target values **MUST** follow the strict naming convention defined by each bot i
 
 When developing a new BSAF bot that covers the **same data source** as an existing BSAF bot, the new bot **MUST** respect the `value` and `target` values published in the existing bot's Bot Definition JSON and use identical values. This requirement exists to ensure that client-side duplicate detection functions correctly across multiple bots.
 
-For example, if an existing JMA earthquake bot uses `value:震度5強` and `target:jp-kanto`, any new bot that also processes JMA earthquake data MUST use the same `value:震度5強` and `target:jp-kanto` — not alternatives such as `value:5+`, `value:shindo-5-upper`, `target:jp-kantou`, or `target:jp-関東`.
+For example, if an existing JMA earthquake bot uses `value:5+` and `target:jp-kanto`, any new bot that also processes JMA earthquake data MUST use the same `value:5+` and `target:jp-kanto` — not alternatives such as `value:震度5強`, `value:shindo-5-upper`, `target:jp-kantou`, or `target:jp-関東`.
 
 If a new bot uses different values for the same source events, clients will be unable to detect duplicates, resulting in redundant posts appearing in user timelines and undermining the core benefit of the BSAF protocol.
 
@@ -301,15 +301,15 @@ Users import this JSON into their BSAF-compatible client to register the bot. Th
       "tag": "value",
       "label": "Weight",
       "options": [
-        { "value": "震度1", "label": "Seismic 1" },
-        { "value": "震度2", "label": "Seismic 2" },
-        { "value": "震度3", "label": "Seismic 3" },
-        { "value": "震度4", "label": "Seismic 4" },
-        { "value": "震度5弱", "label": "Seismic 5 Lower" },
-        { "value": "震度5強", "label": "Seismic 5 Upper" },
-        { "value": "震度6弱", "label": "Seismic 6 Lower" },
-        { "value": "震度6強", "label": "Seismic 6 Upper" },
-        { "value": "震度7", "label": "Seismic 7" },
+        { "value": "1", "label": "Seismic 1" },
+        { "value": "2", "label": "Seismic 2" },
+        { "value": "3", "label": "Seismic 3" },
+        { "value": "4", "label": "Seismic 4" },
+        { "value": "5-", "label": "Seismic 5 Lower" },
+        { "value": "5+", "label": "Seismic 5 Upper" },
+        { "value": "6-", "label": "Seismic 6 Lower" },
+        { "value": "6+", "label": "Seismic 6 Upper" },
+        { "value": "7", "label": "Seismic 7" },
         { "value": "info", "label": "Info" },
         { "value": "advisory", "label": "Advisory" },
         { "value": "warning", "label": "Warning" },
@@ -437,7 +437,7 @@ await agent.post({
   tags: [
     "bsaf:v1",
     "type:earthquake",
-    "value:震度5強",
+    "value:5+",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma",

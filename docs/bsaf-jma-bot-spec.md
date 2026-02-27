@@ -227,9 +227,9 @@ https://github.com/osprey74/bsaf-jma-bot
 | 絵文字 | 用途 | 対応する `value` 例 |
 |:-------|:-----|:-------------------|
 | 🟣 | 最高レベル（大津波警報・特別警報・南海トラフ臨時） | `special-warning`, `major-warning` |
-| 🔴 | 重大（震度5以上・津波注意報・噴火） | `震度5弱`〜`震度7`, `warning` |
-| 🟠 | 警戒（震度3-4・火山警報・土砂災害） | `震度3`, `震度4`, `severe-warning` |
-| 🟡 | 注意（震度1-2・気象警報・竜巻注意） | `震度1`, `震度2`, `warning` |
+| 🔴 | 重大（震度5以上・津波注意報・噴火） | `5-`〜`7`, `warning` |
+| 🟠 | 警戒（震度3-4・火山警報・土砂災害） | `3`, `4`, `severe-warning` |
+| 🟡 | 注意（震度1-2・気象警報・竜巻注意） | `1`, `2`, `warning` |
 | 🔵 | 情報提供（予報解除・経過情報） | `info` |
 
 ### 5.3 投稿の言語設定
@@ -284,19 +284,19 @@ AT Protocolの制約：**最大8タグ、合計640バイト**
 
 ### 6.3 `value` 値の一覧
 
-#### 地震（気象庁震度階級をそのまま使用）
+#### 地震（気象庁 XMLのネイティブ値をそのまま使用）
 
 | value値 | 意味 |
 |:--------|:-----|
-| `震度1` | 震度1 |
-| `震度2` | 震度2 |
-| `震度3` | 震度3 |
-| `震度4` | 震度4 |
-| `震度5弱` | 震度5弱 |
-| `震度5強` | 震度5強 |
-| `震度6弱` | 震度6弱 |
-| `震度6強` | 震度6強 |
-| `震度7` | 震度7 |
+| `1` | 震度1 |
+| `2` | 震度2 |
+| `3` | 震度3 |
+| `4` | 震度4 |
+| `5-` | 震度5弱 |
+| `5+` | 震度5強 |
+| `6-` | 震度6弱 |
+| `6+` | 震度6強 |
+| `7` | 震度7 |
 
 #### 津波
 
@@ -346,7 +346,7 @@ AT Protocolの制約：**最大8タグ、合計640バイト**
   "tags": [
     "bsaf:v1",
     "type:earthquake",
-    "value:震度5強",
+    "value:5+",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma"
@@ -626,9 +626,9 @@ const dataDir = process.env.DATA_DIR || "./data";
 
 ```
 [2026-02-15T02:55:55Z] [INFO] POLL eqvol.xml: 3 new entries
-[2026-02-15T02:55:56Z] [INFO] PARSE earthquake: M5.2 value=震度5強 target=jp-kanto
+[2026-02-15T02:55:56Z] [INFO] PARSE earthquake: M5.2 value=5+ target=jp-kanto
 [2026-02-15T02:55:57Z] [INFO] POST success: at://did:plc:xxx/app.bsky.feed.post/xxx
-[2026-02-15T02:55:57Z] [INFO] TAGS bsaf:v1,type:earthquake,value:震度5強,time:2026-02-15T02:52:00Z,target:jp-kanto,source:jma
+[2026-02-15T02:55:57Z] [INFO] TAGS bsaf:v1,type:earthquake,value:5+,time:2026-02-15T02:52:00Z,target:jp-kanto,source:jma
 ```
 
 ---

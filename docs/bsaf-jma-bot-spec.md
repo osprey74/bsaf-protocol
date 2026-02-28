@@ -258,7 +258,7 @@ AT Protocolの制約：**最大8タグ、合計640バイト**
 |:-----|:-----|:---|:-----|
 | 1 | `bsaf:v1` | — | ✅ |
 | 2 | `type:{種別}` | `type:earthquake` | ✅ |
-| 3 | `value:{規模}` | `value:震度5強` | ✅ |
+| 3 | `value:{規模}` | `value:5+` | ✅ |
 | 4 | `time:{ISO8601}` | `time:2026-02-15T02:52:00Z` | ✅ |
 | 5 | `target:{対象}` | `target:jp-kanto` | ✅ |
 | 6 | `source:jma` | — | ✅ |
@@ -313,7 +313,7 @@ AT Protocolの制約：**最大8タグ、合計640バイト**
 | `info` | 情報提供・解除 |
 | `advisory` | 注意報 |
 | `warning` | 警報 |
-| `severe-warning` | — |
+| `severe-warning` | 重大警報 |
 | `special-warning` | 特別警報 |
 
 ### 6.4 `target` 値の一覧

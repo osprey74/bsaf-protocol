@@ -70,7 +70,7 @@ The core tags use intentionally generic names (`type`, `value`, `target`) rather
   "tags": [
     "bsaf:v1",
     "type:earthquake",
-    "value:震度5強",
+    "value:5+",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma"

@@ -70,7 +70,7 @@ BSAFは**汎用Botパースシステム**であり、防災情報に限定され
   "tags": [
     "bsaf:v1",
     "type:earthquake",
-    "value:震度5強",
+    "value:5+",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma"

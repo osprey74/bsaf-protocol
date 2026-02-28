@@ -120,8 +120,8 @@ A BSAF-compatible client reads the `tags` field and applies user-defined filter 
 ```
 Example: User's filter configuration for JMA Bot
 - type: earthquake ✅, tsunami ✅, eruption ✅, ashfall ❌
-- value: 震度3 ✅, 震度4 ✅, 震度5弱 ✅, ... (enabled)
-         震度1 ❌, 震度2 ❌ (disabled)
+- value: Seismic 3 ✅, Seismic 4 ✅, Seismic 5 Lower ✅, ... (enabled)
+         Seismic 1 ❌, Seismic 2 ❌ (disabled)
 - target: jp-kanto ✅, jp-hokkaido ✅ (enabled)
         jp-kinki ❌, jp-kyushu ❌ (disabled)
 
@@ -606,7 +606,7 @@ CAP is a comprehensive XML standard for emergency alerts used by national agenci
 
 ### Phase 1: Foundation (Current)
 
-- [ ] Publish BSAF specification v1
+- [x] Publish BSAF specification v1
 - [ ] Launch reference bot: Japan earthquake & tsunami alerts
 - [ ] Implement BSAF filtering in kazahana as reference client
 - [ ] Publish Bot Definition JSON for reference bot

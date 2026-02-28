@@ -41,7 +41,7 @@ bsaf-protocol/
 ├── docs/
 │   ├── bsaf-spec.md       ← BSAF仕様書（英語版、正式版）
 │   ├── bsaf-spec-ja.md    ← BSAF仕様書（日本語版）
-│   ├── bsaf-jma-bot-spec.md ← JMA Bot実装仕様（※要更新：旧タグ名残存）
+│   ├── bsaf-jma-bot-spec.md ← JMA Bot実装仕様
 │   └── ...
 ├── presets/
 │   └── jp/            ← 日本向けフィルタプリセット（JSON）
@@ -60,7 +60,7 @@ bsaf-protocol/
 |:--------|:-----|:-----|:---|:-----|
 | 1 | `bsaf:v1` | プロトコル識別子 | — | ✅ |
 | 2 | `type:{種別}` | 情報カテゴリ | `type:earthquake` | ✅ |
-| 3 | `value:{規模}` | 重み・規模・程度 | `value:震度5強` | ✅ |
+| 3 | `value:{規模}` | 重み・規模・程度 | `value:5+` | ✅ |
 | 4 | `time:{ISO8601}` | ソースイベント発生時刻（UTC） | `time:2026-02-15T02:52:00Z` | ✅ |
 | 5 | `target:{対象}` | 対象・受け手（誰に向けた情報か） | `target:jp-kanto` | ✅ |
 | 6 | `source:{情報源}` | 発表元機関・データソース | `source:jma` | ✅ |
@@ -71,8 +71,7 @@ bsaf-protocol/
 
 - AT Protocolの制限: **最大8タグ、合計640バイト**
 - タグは `app.bsky.feed.post` の `tags` フィールドに格納（UIに表示されない機械可読メタデータ）
-- タグ値は小文字英数字とハイフンのみ使用（例: `weather-warning`）
-  - **例外:** `value:` の値は日本語震度階級などソースデータ由来の値を許容（例: `value:震度5強`）
+- タグ値は小文字英数字とハイフンのみ使用（例: `weather-warning`, `5+`, `6-`）
 
 ### ⚠️ 旧タグ体系からの変更点（2026-02-24 改訂）
 
@@ -109,7 +108,7 @@ bsaf-protocol/
   "tags": [
     "bsaf:v1",
     "type:earthquake",
-    "value:震度5強",
+    "value:5+",
     "time:2026-02-15T02:52:00Z",
     "target:jp-kanto",
     "source:jma"
@@ -169,8 +168,8 @@ bsaf-protocol/
       "tag": "value",
       "label": "Weight",
       "options": [
-        { "value": "震度3", "label": "Seismic 3" },
-        { "value": "震度5強", "label": "Seismic 5 Upper" }
+        { "value": "3", "label": "Seismic 3" },
+        { "value": "5+", "label": "Seismic 5 Upper" }
       ]
     },
     {
@@ -205,7 +204,7 @@ bsaf-protocol/
 
 既存のBSAF Botと **同一の情報ソース** を扱う新しいBotを開発する場合：
 - 既存Botが公開しているBot定義JSONの `value` および `target` の値を **そのまま使用しなければならない**
-- `value:5+` vs `value:震度5強`、`target:jp-kantou` vs `target:jp-kanto` のような代替値は不可
+- `value:shindo-5-upper` vs `value:5+`、`target:jp-kantou` vs `target:jp-kanto` のような代替値は不可
 - この規約はクライアント側の重複検知が正しく機能するために不可欠
 
 ### 重複検知ロジック
@@ -272,18 +271,17 @@ bsaf-jma-bot のデータソースとなる気象庁フィード情報。
 
 ## 未対応の既知タスク
 
-- [ ] `docs/bsaf-jma-bot-spec.md` の旧タグ名を新タグ名に更新する
+- [x] `docs/bsaf-jma-bot-spec.md` の旧タグ名を新タグ名に更新する
 - [ ] `examples/` ディレクトリ内のサンプルコードを新タグ体系に更新する
 - [ ] `presets/jp/` のプリセットJSONを新タグ体系に更新する
-- [ ] `README.md` をbsaf-spec.mdの内容と整合させる
+- [x] `README.md` をbsaf-spec.mdの内容と整合させる
 
 ---
 
 ## コーディング規約・注意事項
 
 - 言語: 仕様書は英語がプライマリ、日本語訳を `docs/` に配置
-- タグ値は小文字英数字とハイフンのみ使用（例: `weather-warning`）
-  - `value:` は例外的にソース準拠の値を許容（例: `value:震度5強`）
+- タグ値は小文字英数字とハイフンのみ使用（例: `weather-warning`, `5+`, `6-`）
   - `target:` は `{country_code}-{region}` 形式（例: `jp-kanto`, `us-california`）
   - 非地理的な `target` はドメインプレフィックス形式（例: `npb-giants`, `epl-arsenal`）
 - Bot定義JSON: `filters[].options[].value` は実際の投稿タグ値と **完全一致** しなければならない

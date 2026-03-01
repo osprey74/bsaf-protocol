@@ -171,12 +171,12 @@ Any Bluesky client can support BSAF:
 
 ## Roadmap
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation (Complete)
 
 - [x] Publish BSAF specification v1
-- [ ] Launch reference bot: Japan earthquake & tsunami alerts
-- [ ] Implement BSAF filtering in kazahana as reference client
-- [ ] Publish Bot Definition JSON for reference bot
+- [x] Launch reference bot: Japan disaster alerts (10 types including earthquake, tsunami, eruption, weather warnings, and more)
+- [x] Implement BSAF filtering in kazahana as reference client (11 languages)
+- [x] Publish Bot Definition JSON for reference bot
 
 ### Phase 2: Ecosystem Growth
 
@@ -234,8 +234,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Reference Implementation
 
-- **Bot:** [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — Japan earthquake/tsunami/weather alerts *(coming soon)*
-- **Client:** [kazahana](https://github.com/osprey74/kazahana) — Bluesky desktop client with BSAF support *(coming soon)*
+- **Bot:** [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — Japan disaster alerts (earthquake, tsunami, eruption, weather warnings, and more) — live on Bluesky as [@jma-alert-bot.bsky.social](https://bsky.app/profile/jma-alert-bot.bsky.social)
+- **Client:** [kazahana](https://github.com/osprey74/kazahana) — Bluesky desktop client with BSAF filtering support (11 languages)
 
 ---
 

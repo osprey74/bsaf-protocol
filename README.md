@@ -247,6 +247,14 @@ Reference implementations are licensed under [MIT License](LICENSE).
 
 ---
 
+## Support
+
+If you find BSAF useful, consider supporting its development:
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-ff5e5b?logo=ko-fi)](https://ko-fi.com/osprey74)
+
+---
+
 **BSAF is an open community effort. Built for safety. Designed for everyone.**
 
 [Feedback](https://github.com/osprey74/bsaf-protocol/issues) · [Discussions](https://github.com/osprey74/bsaf-protocol/discussions) · [Contribute](CONTRIBUTING.md)

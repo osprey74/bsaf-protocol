@@ -251,6 +251,7 @@ Reference implementations are licensed under [MIT License](LICENSE).
 
 If you find BSAF useful, consider supporting its development:
 
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=github)](https://github.com/sponsors/osprey74)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-ff5e5b?logo=ko-fi)](https://ko-fi.com/osprey74)
 
 ---

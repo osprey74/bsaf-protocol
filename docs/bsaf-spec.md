@@ -643,8 +643,8 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## Reference Implementation
 
-- **Bot:** [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — Japan earthquake/tsunami/weather alerts *(coming soon)*
-- **Client:** [kazahana](https://github.com/osprey74/kazahana) — Bluesky desktop client with BSAF support *(coming soon)*
+- **Bot:** [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — Japan earthquake/tsunami/weather alerts
+- **Client:** [kazahana](https://github.com/osprey74/kazahana) — Bluesky desktop client with BSAF support
 
 ---
 

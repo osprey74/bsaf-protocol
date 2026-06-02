@@ -237,6 +237,7 @@ CAPは各国機関が使用する緊急アラートの包括的なXML標準で�
 ## リファレンス実装
 
 - **Bot:** [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — 日本の災害情報（地震・津波・噴火・気象警報等 全10種別） — Blueskyで稼働中: [@jma-alert-bot.bsky.social](https://bsky.app/profile/jma-alert-bot.bsky.social)
+- **Bot:** [bsaf-kikikuru-bot](https://github.com/osprey74/bsaf-kikikuru-bot) — JMA新気象警報・注意報（Ｒ０６体系：大雨・土砂災害・高潮・暴風・波浪・大雪ほか、VPWW55-61） — Blueskyで稼働中: [@bsaf-kikikuru-bot.bsky.social](https://bsky.app/profile/bsaf-kikikuru-bot.bsky.social)
 - **クライアント:** [kazahana](https://github.com/osprey74/kazahana) — BSAF対応 Blueskyデスクトップクライアント（全11言語対応）
 
 ---

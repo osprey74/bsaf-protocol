@@ -235,6 +235,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## Reference Implementation
 
 - **Bot:** [bsaf-jma-bot](https://github.com/osprey74/bsaf-jma-bot) — Japan disaster alerts (earthquake, tsunami, eruption, weather warnings, and more) — live on Bluesky as [@jma-alert-bot.bsky.social](https://bsky.app/profile/jma-alert-bot.bsky.social)
+- **Bot:** [bsaf-kikikuru-bot](https://github.com/osprey74/bsaf-kikikuru-bot) — JMA new R06 weather warnings & advisories (heavy rain, landslide, storm-surge, wind, wave, snow, and other phenomena; VPWW55–61) — live on Bluesky as [@bsaf-kikikuru-bot.bsky.social](https://bsky.app/profile/bsaf-kikikuru-bot.bsky.social)
 - **Client:** [kazahana](https://github.com/osprey74/kazahana) — Bluesky desktop client with BSAF filtering support (11 languages)
 
 ---

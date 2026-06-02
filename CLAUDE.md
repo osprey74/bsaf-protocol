@@ -265,6 +265,7 @@ bsaf-jma-bot のデータソースとなる気象庁フィード情報。
 |:---------|:----|:-----|
 | kazahana | https://github.com/osprey74/kazahana | リファレンスクライアント（Tauri v2 + React + TS） |
 | bsaf-jma-bot | https://github.com/osprey74/bsaf-jma-bot | 日本向けリファレンスBot（Fly.io東京リージョンで24/7稼働中、10災害種別対応） |
+| bsaf-kikikuru-bot | https://github.com/osprey74/bsaf-kikikuru-bot | 日本向けリファレンスBot第2弾（JMA新気象警報・注意報 Ｒ０６体系 VPWW55-61、Fly.io東京リージョンで24/7稼働中） |
 | 気象庁 XML PULL型 | https://xml.kishou.go.jp/xmlpull.html | 日本のアラートデータソース |
 | AT Protocol tags | https://docs.bsky.app/docs/advanced-guides/posts#tags | Bluesky投稿のtagsフィールド仕様 |
 
